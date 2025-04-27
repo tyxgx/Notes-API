@@ -1,69 +1,82 @@
-// Import Express framework to define routes
-const express = require("express");
+// Import Express framework to create routes
+const express = require('express');
 
-// Create a new Express router instance
+// Import jsonwebtoken to handle JWT creation
+const jwt = require('jsonwebtoken');
+
+// Import the User model for interacting with the users collection
+const User = require('../models/user');
+
+// Create a new router instance from Express
 const router = express.Router();
 
-// Import note controller functions for CRUD operations
-const {
-  getNotes,
-  createNote,
-  updateNote,
-  deleteNote,
-} = require("../Controllers/noteController");
+// Import the authentication middleware to protect routes
+const { auth } = require('../middleware/authMiddleware');
 
-// Import authentication and role-based authorization middleware
-const { auth, authorizeRoles } = require('../middleware/authMiddleware');
+// =====================================
+// Route: POST /register
+// Registers a new user
+// =====================================
+router.post('/register', async (req, res) => {
+  const { email, password, role } = req.body; // Extract user details from request body
 
-// ===============================
-// GET /notes
-// Route to get all notes for a user
-// Only accessible to roles: reader, creator, editor, admin
-// ===============================
-router.get(
-  '/',
-  auth, // Ensure the user is authenticated
-  authorizeRoles('reader', 'creator', 'editor', 'admin'), // Authorize based on role
-  getNotes // Controller function to get notes
-);
+  try {
+    // Create a new user in the database (password is hashed automatically via pre-save hook)
+    const user = await User.create({ email, password, role });
 
-// ===============================
-// POST /notes
-// Route to create a new note
-// Only accessible to roles: creator, admin
-// ===============================
-router.post(
-  '/',
-  auth, // Authenticate the user
-  authorizeRoles('creator', 'admin'), // Only creators and admins can create notes
-  createNote // Controller function to handle note creation
-);
+    // Respond with success and some user info (excluding password)
+    res.status(201).json({ 
+      message: 'User created',
+      user: { id: user._id, email: user.email, role: user.role }
+    });
+  } catch (err) {
+    // Respond with an error if user creation fails (e.g., duplicate email)
+    res.status(400).json({ error: 'Registration failed' });
+  }
+});
 
-// ===============================
-// PUT /notes/:id
-// Route to update a note by its ID
-// Only accessible to roles: editor, admin
-// ===============================
-router.put(
-  '/:id',
-  auth, // Authenticate the user
-  authorizeRoles('editor', 'admin'), // Only editors and admins can update notes
-  updateNote // Controller function to handle note updates
-);
+// =====================================
+// Route: POST /login
+// Logs in a user and returns a JWT token
+// =====================================
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body; // Extract credentials from request body
 
-// ===============================
-// DELETE /notes/:id
-// Route to delete a note by its ID
-// Only accessible to role: admin
-// ===============================
-router.delete(
-  '/:id',
-  auth, // Authenticate the user
-  authorizeRoles('admin'), // Only admins can delete notes
-  deleteNote // Controller function to handle note deletion
-);
+  try {
+    // Find the user by email
+    const user = await User.findOne({ email });
 
-// ===============================
-// Export the router to be used in the main server app
-// ===============================
+    // If user is not found or password doesn't match, return unauthorized
+    if (!user || !(await user.comparePassword(password))) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Create a JWT with user ID and role, signed using secret key from .env
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },        // Payload
+      process.env.JWT_SECRET,                       // Secret key
+      { expiresIn: '1h' }                           // Token expiration time
+    );
+
+    // Respond with the token and user info
+    res.json({ 
+      token,
+      user: { id: user._id, email: user.email, role: user.role }
+    });
+  } catch (err) {
+    // Handle unexpected server errors
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// =====================================
+// Route: GET /me
+// Returns the authenticated user's info
+// =====================================
+router.get('/me', auth, async (req, res) => {
+  // `auth` middleware ensures the user is authenticated and sets `req.user`
+  res.json(req.user); // Respond with authenticated user's info
+});
+
+// Export the router to be used in the main server file
 module.exports = router;
