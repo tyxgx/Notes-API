@@ -43,7 +43,7 @@ JWT_SECRET=your_jwt_secret_key
 4. **Start the server**
 
 ```bash
-npm run dev
+npm nodemon app.js
 ```
 
 ---
