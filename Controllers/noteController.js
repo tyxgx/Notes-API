@@ -1,39 +1,41 @@
 // Import the Mongoose model for the 'notes' collection
 const UserNote = require("../models/note");
+const APIFeatures = require("../utils/apiFeatures");
 
 // ==========================
 // Get all notes for a user
 // ==========================
 const getNotes = async (req, res) => {
-  // Destructure userId from the authenticated user's object (make sure auth middleware sets req.user properly)
-  const  userId  = req.user.id;
-
-  // Extract pagination values from the query string, or use default values
-  const { page = 1, limit = 10 } = req.query;
+  const userId = req.user.id;
 
   try {
-    // Query the database to find notes created by this user
-    // Apply pagination by skipping (page-1) * limit documents and limiting to `limit`
-    const notes = await UserNote.find({ user: userId })
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
+    // 1. Base query (user specific)
+    const baseQuery = UserNote.find({ user: userId });
 
-    // Count total notes for this user (used to calculate total pages)
+    // 2. Apply filtering, sorting, pagination
+    const features = new APIFeatures(baseQuery, req.query)
+      .filter()
+      .sort()
+      .paginate();
+
+    const notes = await features.query;
+
+    // 3. Count total notes (only based on user)
     const total = await UserNote.countDocuments({ user: userId });
 
-    // Respond with paginated notes and metadata
     res.status(200).json({
-      page: Number(page), // current page number
-      limit: Number(limit), // number of notes per page
-      totalPages: Math.ceil(total / limit), // total pages available
-      totalNotes: total, // total number of notes
-      notes // actual notes data
+      page: Number(req.query.page) || 1,
+      limit: Number(req.query.limit) || 10,
+      totalPages: Math.ceil(total / (Number(req.query.limit) || 10)),
+      totalNotes: total,
+      notes
     });
+
   } catch (error) {
-    // Catch any errors and return a 500 server error with error details
     res.status(500).json({ message: "Error fetching notes", error });
   }
 };
+
 
 // ==========================
 // Create a new note
@@ -124,3 +126,6 @@ const deleteNote = async (req, res) => {
 
 // Export the CRUD controller functions so they can be used in routes
 module.exports = { getNotes, createNote, updateNote, deleteNote };
+
+
+
