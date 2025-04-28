@@ -3,7 +3,7 @@
 // ===============================
 const express = require("express"); // Import Express framework
 const connectDB = require("./config/db"); // Import custom DB connection function
-const noteRouter = require("./Routes/noteRoutes"); // Import note routes (not used directly here, but imported)
+const noteRoutes = require("./Routes/noteRoutes"); // Import note routes (not used directly here, but imported)
 
 // Load environment variables from a .env file into process.env
 require('dotenv').config();
@@ -29,7 +29,8 @@ connectDB(); // Executes the function to connect to MongoDB
 app.use('/api/auth', require('./Routes/auth'));
 
 // Route for notes CRUD operations with role-based access
-app.use('/api/notes', require('./Routes/noteRoutes'));
+app.use('/api/notes', noteRoutes);
+// Route for user management (admin only)
 
 // ===============================
 // Start the Express server

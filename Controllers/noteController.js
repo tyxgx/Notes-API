@@ -6,7 +6,7 @@ const UserNote = require("../models/note");
 // ==========================
 const getNotes = async (req, res) => {
   // Destructure userId from the authenticated user's object (make sure auth middleware sets req.user properly)
-  const { userId } = req.user.id;
+  const  userId  = req.user.id;
 
   // Extract pagination values from the query string, or use default values
   const { page = 1, limit = 10 } = req.query;
@@ -46,8 +46,8 @@ const createNote = async (req, res) => {
     // Create a new note in the database with the provided data
     const note = await UserNote.create({
       user: req.user.id, // Set the user ID from the authenticated user
-      title: req.body.title, // Title of the note
-      content: req.body.content // Content of the note
+      title, // Title of the note
+      content// Content of the note
     });
 
     // Return the created note with a 201 Created status
@@ -62,20 +62,46 @@ const createNote = async (req, res) => {
 // Update a note by ID
 // ==========================
 const updateNote = async (req, res) => {
-  // Get the note's ID from the route parameters
   const id = req.params.id.replace(/^id:/, '');
-  try {
-    // Update the note by its ID with the new data from the request body
-    // The { new: true } option makes sure the updated document is returned
-    const note = await UserNote.findByIdAndUpdate(id, req.body, { new: true });
 
-    // Send the updated note back in the response
-    res.json(note);
+  try {
+    const note = await UserNote.findById(id);
+
+    // 1. Check if note exists
+    if (!note) {
+      return res.status(404).json({ success: false, message: "Note not found" });
+    }
+
+    // 2. Check if the note belongs to the logged-in user
+    if (note.user.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Not authorized to update this note" });
+    }
+
+    // 3. Now actually update the fields
+    note.title = req.body.title || note.title;
+    note.content = req.body.content || note.content;
+
+    const updatedNote = await note.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Note updated successfully",
+      note: updatedNote
+    });
+
+    console.log("Note.user (from DB):", note.user);
+    console.log("Note.user (toString):", note.user.toString());
+    console.log("Request.user.id (from token):", req.user.id);
+
+
+    console.log("Updated note before saving:", note);
+
+
   } catch (error) {
-    // Handle errors (e.g. invalid ID or bad data)
-    res.status(400).json({ message: "Error updating note", error });
+    res.status(500).json({ success: false, message: "Server error while updating note", error: error.message });
   }
 };
+
 
 // ==========================
 // Delete a note by ID

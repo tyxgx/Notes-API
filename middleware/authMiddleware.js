@@ -17,8 +17,8 @@ const auth = async (req, res, next) => {
     }
 
     req.user = {
-      id: decoded.userId,
-      role: decoded.role,
+      id: user._id,
+      role: user.role, // Take role from the database
     };
     next();
   } catch (err) {
@@ -29,8 +29,17 @@ const auth = async (req, res, next) => {
 // Role authorization middleware
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Access denied' });
+    const userRole = req.user.role.toLowerCase();
+    const allowedRoles = roles.map(role => role.toLowerCase());
+
+    console.log('User role:', userRole);
+    console.log('Allowed roles:', allowedRoles);
+
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({
+        success: false,
+        message: `Role (${req.user.role}) is not allowed to access this resource`
+      });
     }
     next();
   };

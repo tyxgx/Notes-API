@@ -1,82 +1,170 @@
-// Import Express framework to create routes
 const express = require('express');
-
-// Import jsonwebtoken to handle JWT creation
-const jwt = require('jsonwebtoken');
-
-// Import the User model for interacting with the users collection
-const User = require('../models/user');
-
-// Create a new router instance from Express
 const router = express.Router();
+const { auth, authorizeRoles } = require('../middleware/authMiddleware');
+const Note = require('../models/note');
 
-// Import the authentication middleware to protect routes
-const { auth } = require('../middleware/authMiddleware');
+// Apply authentication middleware to all note routes
+router.use(auth);
 
-// =====================================
-// Route: POST /register
-// Registers a new user
-// =====================================
-router.post('/register', async (req, res) => {
-  const { email, password, role } = req.body; // Extract user details from request body
-
+/**
+ * @route   GET /api/notes
+ * @desc    Get paginated notes (accessible to all authenticated roles)
+ * @access  Private (reader, creator, editor, admin)
+ * @query   page (default: 1), limit (default: 10)
+ */
+router.get('/', authorizeRoles('reader', 'creator', 'editor', 'admin'), async (req, res) => {
   try {
-    // Create a new user in the database (password is hashed automatically via pre-save hook)
-    const user = await User.create({ email, password, role });
+    const { page = 1, limit = 10 } = req.query;
+    const notes = await Note.find({ user: req.user.id })
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .sort({ createdAt: -1 });
 
-    // Respond with success and some user info (excluding password)
-    res.status(201).json({ 
-      message: 'User created',
-      user: { id: user._id, email: user.email, role: user.role }
+    const count = await Note.countDocuments({ user: req.user.id });
+
+    res.json({
+      notes,
+      totalPages: Math.ceil(count / limit),
+      currentPage: Number(page),
+      totalNotes: count
     });
   } catch (err) {
-    // Respond with an error if user creation fails (e.g., duplicate email)
-    res.status(400).json({ error: 'Registration failed' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while fetching notes',
+      error: err.message 
+    });
   }
 });
 
-// =====================================
-// Route: POST /login
-// Logs in a user and returns a JWT token
-// =====================================
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body; // Extract credentials from request body
-
+/**
+ * @route   POST /api/notes
+ * @desc    Create a new note (accessible to creator and admin roles)
+ * @access  Private (creator, admin)
+ */
+router.post('/', authorizeRoles('creator', 'admin'), async (req, res) => {
   try {
-    // Find the user by email
-    const user = await User.findOne({ email });
+    const { title, content } = req.body;
 
-    // If user is not found or password doesn't match, return unauthorized
-    if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    if (!title || !content) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and content are required'
+      });
     }
 
-    // Create a JWT with user ID and role, signed using secret key from .env
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },        // Payload
-      process.env.JWT_SECRET,                       // Secret key
-      { expiresIn: '1h' }                           // Token expiration time
-    );
+    const note = await Note.create({
+      user: req.user.id,
+      title,
+      content
+    });
 
-    // Respond with the token and user info
-    res.json({ 
-      token,
-      user: { id: user._id, email: user.email, role: user.role }
+    res.status(201).json({
+      success: true,
+      note
     });
   } catch (err) {
-    // Handle unexpected server errors
-    res.status(500).json({ error: 'Login failed' });
+    res.status(500).json({
+      success: false,
+      message: 'Server error while creating note',
+      error: err.message
+    });
   }
 });
 
-// =====================================
-// Route: GET /me
-// Returns the authenticated user's info
-// =====================================
-router.get('/me', auth, async (req, res) => {
-  // `auth` middleware ensures the user is authenticated and sets `req.user`
-  res.json(req.user); // Respond with authenticated user's info
+/**
+ * @route   PUT /api/notes/:id
+ * @desc    Update a note (accessible to editor and admin roles)
+ * @access  Private (editor, admin)
+ */
+router.put('/:id', authorizeRoles('editor', 'admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, content } = req.body;
+
+    if (!title || !content) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and content are required'
+      });
+    }
+
+    let note = await Note.findById(id);
+
+    if (!note) {
+      return res.status(404).json({
+        success: false,
+        message: 'Note not found'
+      });
+    }
+
+    console.log('note.user:', note.user.toString());
+    console.log('req.user.id:', req.user.id);
+
+
+    // Verify note belongs to user
+    if (note.user.toString() !== req.user.id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this note'
+      });
+    }
+
+    note.title = title;
+    note.content = content;
+    const updatedNote = await note.save();
+
+    res.json({
+      success: true,
+      note: updatedNote
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating note',
+      error: err.message
+    });
+  }
 });
 
-// Export the router to be used in the main server file
+/**
+ * @route   DELETE /api/notes/:id
+ * @desc    Delete a note (accessible only to admin role)
+ * @access  Private (admin)
+ */
+router.delete('/:id', authorizeRoles('admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const note = await Note.findById(id);
+
+    if (!note) {
+      return res.status(404).json({
+        success: false,
+        message: 'Note not found'
+      });
+    }
+
+    // Verify note belongs to user (even admins can only delete their own notes)
+    if (note.user.toString() !== req.user.id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this note'
+      });
+    }
+
+    await Note.findByIdAndDelete(id);
+
+    res.json({
+      success: true,
+      message: 'Note deleted successfully'
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error while deleting note',
+      error: err.message
+    });
+  }
+});
+
 module.exports = router;
