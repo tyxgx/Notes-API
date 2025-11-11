@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { @apply bg-gray-50; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .paste-enter {
+    opacity: 0;
+    transform: translate(-8px, -8px) scale(0.95);
+  }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.bg-grid-light {
+  background-image: radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.08) 1px, transparent 0);
+  background-size: 40px 40px;
+}
