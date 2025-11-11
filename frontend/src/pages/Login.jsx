@@ -17,7 +17,13 @@ export default function Login() {
       await login(email, password);
       nav('/');
     } catch (e2) {
-      setErr(e2.response?.data?.error || 'Login failed');
+      const apiError = e2.response?.data;
+      const message = typeof apiError?.error === 'string'
+        ? apiError.error
+        : typeof apiError?.message === 'string'
+          ? apiError.message
+          : 'Login failed';
+      setErr(message);
     } finally { setLoading(false); }
   };
 
@@ -40,4 +46,3 @@ export default function Login() {
     </div>
   );
 }
-

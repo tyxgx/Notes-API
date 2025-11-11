@@ -18,7 +18,13 @@ export default function Register() {
       await register(email, password, role);
       nav('/');
     } catch (e2) {
-      setErr(e2.response?.data?.error || 'Registration failed');
+      const apiError = e2.response?.data;
+      const message = typeof apiError?.error === 'string'
+        ? apiError.error
+        : typeof apiError?.message === 'string'
+          ? apiError.message
+          : 'Registration failed';
+      setErr(message);
     } finally { setLoading(false); }
   };
 
@@ -50,4 +56,3 @@ export default function Register() {
     </div>
   );
 }
-

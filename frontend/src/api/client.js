@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const client = axios.create({ baseURL: '/api' });
+const apiHost = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const baseURL = apiHost ? `${apiHost}/api` : '/api';
+const client = axios.create({ baseURL });
 
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
@@ -20,4 +22,3 @@ client.interceptors.response.use(
 );
 
 export default client;
-
