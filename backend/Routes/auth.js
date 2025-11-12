@@ -18,16 +18,16 @@ const { auth } = require('../middleware/authMiddleware');
 // Registers a new user
 // =====================================
 router.post('/register', async (req, res) => {
-  const { email, password, role } = req.body; // Extract user details from request body
+  const { email, password } = req.body; // Extract user details from request body
 
   try {
     // Create a new user in the database (password is hashed automatically via pre-save hook)
-    const user = await User.create({ email, password, role });
+    const user = await User.create({ email, password });
 
     // Respond with success and some user info (excluding password)
     res.status(201).json({ 
       message: 'User created',
-      user: { id: user._id, email: user.email, role: user.role }
+      user: { id: user._id, email: user.email }
     });
   } catch (err) {
     // Respond with an error if user creation fails (e.g., duplicate email)
@@ -51,9 +51,9 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Create a JWT with user ID and role, signed using secret key from .env
+    // Create a JWT with user ID, signed using secret key from .env
     const token = jwt.sign(
-      { userId: user._id, role: user.role },        // Payload
+      { userId: user._id },                         // Payload
       process.env.JWT_SECRET,                       // Secret key
       { expiresIn: '1h' }                           // Token expiration time
     );
@@ -61,7 +61,7 @@ router.post('/login', async (req, res) => {
     // Respond with the token and user info
     res.json({ 
       token,
-      user: { id: user._id, email: user.email, role: user.role }
+      user: { id: user._id, email: user.email }
     });
   } catch (err) {
     // Handle unexpected server errors

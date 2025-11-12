@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import client from '../api/client.js';
-import { useAuth } from '../context/AuthProvider.jsx';
 import NoteForm from '../components/NoteForm.jsx';
 
 export default function NoteEdit() {
   const { id } = useParams();
   const nav = useNavigate();
-  const { user } = useAuth();
   const [note, setNote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -24,9 +22,6 @@ export default function NoteEdit() {
     };
     fetchNote();
   }, [id]);
-
-  const canEdit = ['editor', 'admin'].includes(user?.role);
-  if (!canEdit) return <div className="text-sm text-red-600">You do not have permission to edit notes.</div>;
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -55,15 +50,11 @@ export default function NoteEdit() {
   if (error) return <div className="text-red-600 text-sm">{error}</div>;
   if (!note) return null;
 
-  const isAdmin = user?.role === 'admin';
-
   return (
     <div className="bg-white border rounded p-4 space-y-3">
       <h1 className="text-lg font-semibold">Edit Note</h1>
       <NoteForm initial={{ title: note.title, content: note.content }} onSubmit={onSubmit} submitting={submitting} />
-      {isAdmin && (
-        <button onClick={onDelete} className="text-red-600 border border-red-600 px-3 py-1 rounded">Delete</button>
-      )}
+      <button onClick={onDelete} className="text-red-600 border border-red-600 px-3 py-1 rounded">Delete</button>
     </div>
   );
 }

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import client from '../api/client.js';
 import StickyNote from '../components/StickyNote.jsx';
-import { useAuth } from '../context/AuthProvider.jsx';
 
 const COLORS = ['yellow', 'mint', 'lilac', 'coral', 'sky'];
 const BOARD_SIZE = { width: 2400, height: 1600 };
@@ -20,9 +19,6 @@ export default function Board() {
   const [panning, setPanning] = useState(false);
   const panState = useRef({ startX: 0, startY: 0, originX: 0, originY: 0 });
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const canCreate = ['creator', 'admin'].includes(user?.role);
-  const canMove = ['creator', 'editor', 'admin'].includes(user?.role);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -63,7 +59,6 @@ export default function Board() {
   }, []);
 
   const onCreate = async () => {
-    if (!canCreate) return;
     try {
       const color = COLORS[Math.floor(Math.random() * COLORS.length)];
       const body = { title: 'Untitled', content: '', x: 32, y: 32, color };
@@ -78,7 +73,6 @@ export default function Board() {
   };
 
   const onUpdatePos = async (id, pos) => {
-    if (!canMove) return;
     setNotes((n) => n.map((x) => (x._id === id ? { ...x, ...pos } : x)));
     try {
       await client.patch(`/notes/${id}/position`, pos);
@@ -88,7 +82,6 @@ export default function Board() {
   };
 
   const onUpdateStyle = async (id, style) => {
-    if (!canMove) return;
     setNotes((n) => n.map((x) => (x._id === id ? { ...x, ...style } : x)));
     try {
       await client.patch(`/notes/${id}/style`, style);
@@ -150,8 +143,7 @@ export default function Board() {
       <div className="border-b bg-white/80 backdrop-blur px-4 py-3 flex flex-wrap gap-3 items-center">
         <button
           onClick={onCreate}
-          disabled={!canCreate}
-          className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-white shadow ${canCreate ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'}`}
+          className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-white shadow bg-blue-600 hover:bg-blue-700"
         >
           <span>New note</span>
           <span className="text-[10px] uppercase opacity-70">N</span>
@@ -211,7 +203,7 @@ export default function Board() {
               onMove={(pos) => onUpdatePos(n._id, pos)}
               onStyle={(style) => onUpdateStyle(n._id, style)}
               onOpen={() => navigate(`/notes/${n._id}`)}
-              readOnly={!canMove}
+              readOnly={false}
             />
           ))}
         </div>

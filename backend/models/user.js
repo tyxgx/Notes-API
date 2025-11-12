@@ -20,13 +20,6 @@ const userSchema = new mongoose.Schema({
     type: String, 
     required: true        // Cannot create a user without password
   },
-
-  // Role field: used for Role-Based Access Control (RBAC)
-  role: {
-    type: String, 
-    enum: ['reader', 'creator', 'editor', 'admin'], // Allowed role values
-    default: 'reader'      // Default role assigned if not specified
-  }
 });
 
 // ===========================

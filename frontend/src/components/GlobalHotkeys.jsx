@@ -20,10 +20,8 @@ export default function GlobalHotkeys() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
 
-  const canCreate = ['creator', 'admin'].includes(user?.role);
-
   const openCapture = () => {
-    if (!user || !canCreate) return;
+    if (!user) return;
     setCaptureOpen(true);
     setTimeout(() => document.getElementById('quick-capture-title')?.focus(), 0);
   };
@@ -31,7 +29,7 @@ export default function GlobalHotkeys() {
   useEffect(() => {
     const handler = (e) => {
       if (isTypingTarget(e.target)) return;
-      if (user && canCreate && !e.metaKey && !e.ctrlKey && e.key.toLowerCase() === 'n') {
+      if (user && !e.metaKey && !e.ctrlKey && e.key.toLowerCase() === 'n') {
         e.preventDefault();
         openCapture();
       }
@@ -80,7 +78,7 @@ export default function GlobalHotkeys() {
     actions.push(
       { id: 'board', label: 'Open board', shortcut: 'B', onSelect: () => navigate('/board') },
       { id: 'list', label: 'Open list view', shortcut: 'L', onSelect: () => navigate('/list') },
-      ...(canCreate ? [{ id: 'quick', label: 'Quick capture', shortcut: 'N', description: 'Create a note from anywhere', onSelect: openCapture }] : []),
+      { id: 'quick', label: 'Quick capture', shortcut: 'N', description: 'Create a note from anywhere', onSelect: openCapture },
       { id: 'profile', label: 'Profile', onSelect: () => navigate('/profile') },
       { id: 'logout', label: 'Sign out', onSelect: () => { logout(); navigate('/login'); } }
     );

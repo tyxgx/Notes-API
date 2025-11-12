@@ -3,7 +3,7 @@
 A RESTful API for managing user notes with:
 
 - ✅ JWT-based authentication
-- 👥 Role-Based Access Control (RBAC)
+- 👥 Owner-scoped access control (every authenticated user manages only their notes)
 - 📄 Pagination, Filtering, and Sorting support for listing notes
 - 🔐 Secure password hashing with bcrypt
 - ⚡ Centralized error handling
@@ -84,10 +84,22 @@ You can use **query parameters** for advanced listing:
 
 - User registration & secure login
 - JWT Authentication
-- Role-Based Access Control (RBAC) for protected routes
+- Owner-scoped access control for all note routes
 - CRUD operations for user notes
 - **Advanced Pagination, Filtering and Sorting** for listing notes
 - MongoDB database integration
 - Password hashing using bcrypt
 - **Centralized error handling** for better API responses
 - Highly scalable structure
+
+---
+
+## 🔄 Migrating from RBAC builds
+
+If you previously stored `role` on `users`, drop the field to avoid stray data:
+
+```js
+db.users.updateMany({}, { $unset: { role: "" } })
+```
+
+All routes are now owner-scoped—every authenticated user can create, edit, and delete their own notes without extra role setup.

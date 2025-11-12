@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import client from '../api/client.js';
-import { useAuth } from '../context/AuthProvider.jsx';
 
 export default function NotesList() {
   const [sp, setSp] = useSearchParams();
   const [data, setData] = useState({ notes: [], totalPages: 1, currentPage: 1, totalNotes: 0 });
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
 
   const page = Number(sp.get('page') || 1);
   const limit = Number(sp.get('limit') || 10);
@@ -27,13 +25,11 @@ export default function NotesList() {
 
   useEffect(() => { load(); }, [page, limit, sort, q, archived]);
 
-  const canCreate = ['creator', 'admin'].includes(user?.role);
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">My Notes</h1>
-        {canCreate && <Link to="/notes/new" className="bg-blue-600 text-white px-3 py-2 rounded">New Note</Link>}
+        <Link to="/notes/new" className="bg-blue-600 text-white px-3 py-2 rounded">New Note</Link>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <input

@@ -16,33 +16,11 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ error: 'User not found' });
     }
 
-    req.user = {
-      id: user._id,
-      role: user.role, // Take role from the database
-    };
+    req.user = { id: user._id, email: user.email };
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 };
 
-// Role authorization middleware
-const authorizeRoles = (...roles) => {
-  return (req, res, next) => {
-    const userRole = req.user.role.toLowerCase();
-    const allowedRoles = roles.map(role => role.toLowerCase());
-
-    if (!allowedRoles.includes(userRole)) {
-      return res.status(403).json({
-        success: false,
-        message: `Role (${req.user.role}) is not allowed to access this resource`
-      });
-    }
-    next();
-  };
-};
-
-module.exports = {
-  auth,
-  authorizeRoles
-};
+module.exports = { auth };

@@ -1,16 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import client from '../api/client.js';
-import { useAuth } from '../context/AuthProvider.jsx';
 import NoteForm from '../components/NoteForm.jsx';
 
 export default function NoteNew() {
   const nav = useNavigate();
-  const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
-
-  const canCreate = ['creator', 'admin'].includes(user?.role);
-  if (!canCreate) return <div className="text-sm text-red-600">You do not have permission to create notes.</div>;
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -30,4 +25,3 @@ export default function NoteNew() {
     </div>
   );
 }
-

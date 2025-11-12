@@ -22,8 +22,8 @@ export function AuthProvider({ children }) {
     setUser(data.user);
   };
 
-  const register = async (email, password, role) => {
-    await client.post('/auth/register', { email, password, role });
+  const register = async (email, password) => {
+    await client.post('/auth/register', { email, password });
     await login(email, password);
   };
 
@@ -40,4 +40,3 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthCtx);
-

@@ -13,9 +13,8 @@ export default function Register() {
     setErr(''); setLoading(true);
     const email = e.target.email.value;
     const password = e.target.password.value;
-    const role = e.target.role.value;
     try {
-      await register(email, password, role);
+      await register(email, password);
       nav('/');
     } catch (e2) {
       const apiError = e2.response?.data;
@@ -40,15 +39,6 @@ export default function Register() {
         <div>
           <label className="block text-sm font-medium">Password</label>
           <input name="password" type="password" className="mt-1 w-full border rounded px-3 py-2" required />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Role</label>
-          <select name="role" className="mt-1 w-full border rounded px-3 py-2">
-            <option value="reader">reader</option>
-            <option value="creator">creator</option>
-            <option value="editor">editor</option>
-            <option value="admin">admin</option>
-          </select>
         </div>
         <button disabled={loading} className="w-full bg-blue-600 text-white px-4 py-2 rounded">{loading ? 'Creating...' : 'Register'}</button>
       </form>

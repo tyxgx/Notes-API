@@ -44,7 +44,7 @@ connectDB(); // Executes the function to connect to MongoDB
 // Route for authentication (register, login, etc.)
 app.use('/api/auth', authLimiter, require('./Routes/auth'));
 
-// Route for notes CRUD operations with role-based access
+// Route for notes CRUD operations (authenticated users only)
 app.use('/api/notes', noteRoutes);
 // Route for user management (admin only)
 

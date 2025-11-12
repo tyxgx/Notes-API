@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { auth, authorizeRoles } = require('../middleware/authMiddleware');
+const { auth } = require('../middleware/authMiddleware');
 const Note = require('../models/note');
 
 const sanitizeTags = (raw = []) => {
@@ -13,11 +13,11 @@ router.use(auth);
 
 /**
  * @route   GET /api/notes
- * @desc    Get paginated notes (accessible to all authenticated roles)
- * @access  Private (reader, creator, editor, admin)
+ * @desc    Get paginated notes for the authenticated user
+ * @access  Private
  * @query   page (default: 1), limit (default: 10)
  */
-router.get('/', authorizeRoles('reader', 'creator', 'editor', 'admin'), async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { page = 1, limit = 10, q = '', tags, archived } = req.query;
     const filter = { user: req.user.id };
@@ -78,9 +78,9 @@ router.get('/', authorizeRoles('reader', 'creator', 'editor', 'admin'), async (r
 /**
  * @route   GET /api/notes/:id
  * @desc    Get a single note by ID (owner only)
- * @access  Private (reader, creator, editor, admin)
+ * @access  Private
  */
-router.get('/:id', authorizeRoles('reader', 'creator', 'editor', 'admin'), async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const note = await Note.findById(id);
@@ -98,10 +98,10 @@ router.get('/:id', authorizeRoles('reader', 'creator', 'editor', 'admin'), async
 
 /**
  * @route   POST /api/notes
- * @desc    Create a new note (accessible to creator and admin roles)
- * @access  Private (creator, admin)
+ * @desc    Create a new note for the authenticated user
+ * @access  Private
  */
-router.post('/', authorizeRoles('creator', 'admin'), async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { title = '', content = '', archived = false } = req.body;
     const tags = sanitizeTags(req.body.tags);
@@ -149,10 +149,10 @@ router.post('/', authorizeRoles('creator', 'admin'), async (req, res) => {
 
 /**
  * @route   PUT /api/notes/:id
- * @desc    Update a note (accessible to editor and admin roles)
- * @access  Private (editor, admin)
+ * @desc    Update a note (owner only)
+ * @access  Private
  */
-router.put('/:id', authorizeRoles('editor', 'admin'), async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { title = '', content = '', pinned } = req.body;
@@ -210,9 +210,9 @@ router.put('/:id', authorizeRoles('editor', 'admin'), async (req, res) => {
 /**
  * @route   PATCH /api/notes/:id/position
  * @desc    Update note position and layer (owner only)
- * @access  Private (editor, admin)
+ * @access  Private
  */
-router.patch('/:id/position', authorizeRoles('creator', 'editor', 'admin'), async (req, res) => {
+router.patch('/:id/position', async (req, res) => {
   try {
     const { id } = req.params;
     const { x, y, z } = req.body;
@@ -234,9 +234,9 @@ router.patch('/:id/position', authorizeRoles('creator', 'editor', 'admin'), asyn
 /**
  * @route   PATCH /api/notes/:id/style
  * @desc    Update note style (color, rotation, pinned)
- * @access  Private (editor, admin)
+ * @access  Private
  */
-router.patch('/:id/style', authorizeRoles('creator', 'editor', 'admin'), async (req, res) => {
+router.patch('/:id/style', async (req, res) => {
   try {
     const { id } = req.params;
     const { color, rotation, pinned } = req.body;
@@ -260,10 +260,10 @@ router.patch('/:id/style', authorizeRoles('creator', 'editor', 'admin'), async (
 
 /**
  * @route   DELETE /api/notes/:id
- * @desc    Delete a note (accessible only to admin role)
- * @access  Private (admin)
+ * @desc    Delete a note (owner only)
+ * @access  Private
  */
-router.delete('/:id', authorizeRoles('admin'), async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const note = await Note.findById(id);
@@ -300,10 +300,10 @@ router.delete('/:id', authorizeRoles('admin'), async (req, res) => {
 
 /**
  * @route   PATCH /api/notes/:id/archive
- * @desc    Archive or restore a note
- * @access  Private (creator, editor, admin)
+ * @desc    Archive or restore a note (owner only)
+ * @access  Private
  */
-router.patch('/:id/archive', authorizeRoles('creator', 'editor', 'admin'), async (req, res) => {
+router.patch('/:id/archive', async (req, res) => {
   try {
     const { id } = req.params;
     const { archived } = req.body;
