@@ -16,7 +16,12 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ error: 'User not found' });
     }
 
-    req.user = { id: user._id, email: user.email };
+    req.user = { 
+      id: user._id, 
+      email: user.email,
+      name: user.name,
+      picture: user.picture
+    };
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Invalid token' });

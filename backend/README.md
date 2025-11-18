@@ -3,6 +3,7 @@
 A RESTful API for managing user notes with:
 
 - ✅ JWT-based authentication
+- 🔐 Google Sign-In (ID token flow) with automatic JWT minting
 - 👥 Owner-scoped access control (every authenticated user manages only their notes)
 - 📄 Pagination, Filtering, and Sorting support for listing notes
 - 🔐 Secure password hashing with bcrypt
@@ -40,6 +41,7 @@ Add the following environment variables:
 PORT=3001
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
+GOOGLE_CLIENT_ID=your_google_oauth_client_id
 ```
 
 4. **Start the server**
@@ -56,6 +58,7 @@ _(assuming `nodemon` is setup with script `"dev": "nodemon app.js"`)_
 ### Auth Routes
 - `POST /api/auth/register` — Register a new user
 - `POST /api/auth/login` — Login user and get JWT token
+- `POST /api/auth/google` — Exchange a Google ID token for a session JWT
 - `GET /api/auth/me` — Get logged-in user's information (Protected)
 
 ### Notes Routes
@@ -83,7 +86,7 @@ You can use **query parameters** for advanced listing:
 ## 🔥 Features
 
 - User registration & secure login
-- JWT Authentication
+- JWT Authentication (email/password + Google SSO)
 - Owner-scoped access control for all note routes
 - CRUD operations for user notes
 - **Advanced Pagination, Filtering and Sorting** for listing notes

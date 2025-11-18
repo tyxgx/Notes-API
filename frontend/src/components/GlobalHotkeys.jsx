@@ -83,10 +83,7 @@ export default function GlobalHotkeys() {
       { id: 'logout', label: 'Sign out', onSelect: () => { logout(); navigate('/login'); } }
     );
   } else {
-    actions.push(
-      { id: 'login', label: 'Sign in', onSelect: () => navigate('/login') },
-      { id: 'register', label: 'Create account', onSelect: () => navigate('/register') }
-    );
+    actions.push({ id: 'login', label: 'Sign in', onSelect: () => navigate('/login') });
   }
 
   return (

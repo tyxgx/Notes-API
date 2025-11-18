@@ -22,20 +22,22 @@ Modern sticky-board notes experience with JWT-secured API and a Vite + React fro
 - `MONGODB_URI` – Atlas connection string (SRV)
 - `JWT_SECRET` – strong secret
 - `CLIENT_ORIGIN` – production frontend URL (e.g. https://notes-api-livid-pi.vercel.app)
+- `GOOGLE_CLIENT_ID` – OAuth Client ID from Google Cloud
 - `PORT` – managed by host (Render sets automatically)
 
 ### Frontend env vars (Vercel)
 
 - `VITE_API_BASE_URL` – backend base URL (e.g. https://notes-api-imkb.onrender.com)
+- `VITE_GOOGLE_CLIENT_ID` – same Google OAuth Client ID as backend
 
 ## Ideal Workflow (Delivered)
-- **Landing → Onboard**: Public landing at `/` with call-to-action. Login/SSO (email+password now) drops you onto `/board`.
+- **Landing → Onboard**: Public landing at `/` with call-to-action. Google Sign-In (button or One Tap) drops you onto `/board`.
 - **Quick Capture**: Press `N` anywhere (or use Command Palette `⌘/Ctrl + K`) to open the global capture modal. Submit to “paste” a sticky at the board’s top-left.
 - **Sticky Board**: Infinite canvas with zoom (toolbar or pinch) and pan (drag background). Snap-to-grid, color picker, pin toggle, inline tag chips, double-click to open full editor.
 - **Toolbar Controls**: Search, archived toggle, grid toggle, zoom %, center view, new-note button (shows shortcut), status hints.
 - **Command Palette**: `⌘/Ctrl + K` for command search (Board/List/Profile/Quick Capture/Logout, etc.). Arrow/Enter navigation supported.
 - **List View**: `/list` has search, archived switch, pagination, tag chips for quick scanning.
-- **Profile & Auth**: `/profile` to view account, logout anywhere.
+- **Profile & Auth**: Google Sign-In (button + One Tap), `/profile` to view account, logout anywhere.
 - Backend hardening includes Helmet, CORS (respecting `CLIENT_ORIGIN`), and auth rate limiting.
 
 ## Keyboard & Pointer Cheatsheet

@@ -1,48 +1,42 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthProvider.jsx';
+import GoogleSignInButton from '../components/GoogleSignInButton.jsx';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { loginWithGoogle } = useAuth();
   const nav = useNavigate();
   const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    setErr(''); setLoading(true);
-    const email = e.target.email.value;
-    const password = e.target.password.value;
+  const handleCredential = useCallback(async (credential) => {
+    if (!credential) return;
+    setErr('');
+    setLoading(true);
     try {
-      await login(email, password);
-      nav('/');
+      await loginWithGoogle(credential);
+      nav('/board', { replace: true });
     } catch (e2) {
       const apiError = e2.response?.data;
       const message = typeof apiError?.error === 'string'
         ? apiError.error
         : typeof apiError?.message === 'string'
           ? apiError.message
-          : 'Login failed';
+          : 'Google sign-in failed';
       setErr(message);
-    } finally { setLoading(false); }
-  };
+    } finally {
+      setLoading(false);
+    }
+  }, [loginWithGoogle, nav]);
 
   return (
-    <div className="max-w-sm mx-auto mt-12 bg-white p-6 rounded border">
-      <h1 className="text-xl font-semibold mb-4">Login</h1>
+    <div className="max-w-sm mx-auto mt-12 bg-white p-6 rounded-2xl border shadow-sm text-center">
+      <h1 className="text-2xl font-semibold mb-2">Welcome back</h1>
+      <p className="text-sm text-gray-500 mb-4">Sign in to your notes with Google.</p>
       {err && <div className="text-red-600 text-sm mb-3">{err}</div>}
-      <form onSubmit={onSubmit} className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium">Email</label>
-          <input name="email" type="email" className="mt-1 w-full border rounded px-3 py-2" required />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Password</label>
-          <input name="password" type="password" className="mt-1 w-full border rounded px-3 py-2" required />
-        </div>
-        <button disabled={loading} className="w-full bg-blue-600 text-white px-4 py-2 rounded">{loading ? 'Logging in...' : 'Login'}</button>
-      </form>
-      <p className="text-sm mt-3">No account? <Link className="text-blue-600" to="/register">Register</Link></p>
+      <GoogleSignInButton onCredential={handleCredential} disabled={loading} />
+      {loading && <div className="text-xs text-gray-400 mt-3">Finishing sign-in…</div>}
+      <p className="text-xs text-gray-400 mt-6">Securely powered by Google.</p>
     </div>
   );
 }

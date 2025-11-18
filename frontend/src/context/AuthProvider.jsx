@@ -22,9 +22,10 @@ export function AuthProvider({ children }) {
     setUser(data.user);
   };
 
-  const register = async (email, password) => {
-    await client.post('/auth/register', { email, password });
-    await login(email, password);
+  const loginWithGoogle = async (credential) => {
+    const { data } = await client.post('/auth/google', { idToken: credential });
+    localStorage.setItem('token', data.token);
+    setUser(data.user);
   };
 
   const logout = () => {
@@ -33,7 +34,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthCtx.Provider value={{ user, setUser, login, logout, register, loading }}>
+    <AuthCtx.Provider value={{ user, setUser, login, loginWithGoogle, logout, loading }}>
       {children}
     </AuthCtx.Provider>
   );

@@ -27,12 +27,9 @@ export default function Landing() {
               <p className="mt-4 text-gray-600 text-lg">
                 A minimal, fast notes board that feels like pinning sticky notes to a wall — now with smooth drag, delightful paste, and a clean workspace.
               </p>
-              <div className="mt-6 flex items-center gap-3">
+              <div className="mt-6 flex items-center">
                 <Link to={ctaHref} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded shadow transition-colors">
                   {ctaLabel}
-                </Link>
-                <Link to="/register" className="px-5 py-2.5 rounded border text-gray-800 hover:bg-gray-50">
-                  Create an Account
                 </Link>
               </div>
               <div className="mt-6 text-sm text-gray-500">No clutter, no noise. Just your notes, where you put them.</div>
@@ -100,9 +97,8 @@ export default function Landing() {
             “This is the first notes app that truly lets me think visually without getting in the way.”
           </blockquote>
           <p className="mt-2 text-sm text-gray-500">Product designer, early access</p>
-          <div className="mt-6 flex justify-center gap-3">
+          <div className="mt-6 flex justify-center">
             <Link to={ctaHref} className="bg-gray-900 text-white px-5 py-2.5 rounded-full">{ctaLabel}</Link>
-            {!user && <Link to="/register" className="px-5 py-2.5 rounded-full border">Create free account</Link>}
           </div>
         </div>
       </section>

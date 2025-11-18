@@ -3,7 +3,6 @@ import { AuthProvider } from './context/AuthProvider.jsx';
 import Header from './components/Header.jsx';
 import GlobalHotkeys from './components/GlobalHotkeys.jsx';
 import Login from './pages/Login.jsx';
-import Register from './pages/Register.jsx';
 import Profile from './pages/Profile.jsx';
 import NotesList from './pages/NotesList.jsx';
 import Board from './pages/Board.jsx';
@@ -21,7 +20,6 @@ export default function App() {
         <main className="p-0">
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/" element={<Landing />} />
             <Route path="/board" element={<ProtectedRoute><Board /></ProtectedRoute>} />

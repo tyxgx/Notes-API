@@ -1,8 +1,18 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthProvider.jsx';
 
-function Avatar({ email }) {
-  const initials = (email || '?').slice(0, 2).toUpperCase();
+function Avatar({ user }) {
+  const initials = (user?.name || user?.email || '?')
+    .split(' ')
+    .map((chunk) => chunk[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
+  if (user?.picture) {
+    return <img src={user.picture} alt={user?.name || user?.email} className="w-8 h-8 rounded-full object-cover border border-gray-200" />;
+  }
+
   return (
     <div className="w-8 h-8 rounded-full bg-gray-900 text-white grid place-items-center text-xs font-semibold">
       {initials}
@@ -33,13 +43,12 @@ export default function Header() {
               <Link className="hidden sm:inline-flex items-center h-9 px-3 rounded-full border border-gray-200 text-sm text-gray-700 hover:bg-gray-50" to="/list">List</Link>
               <Link className="hidden sm:inline-flex items-center h-9 px-3 rounded-full border border-gray-200 text-sm text-gray-700 hover:bg-gray-50" to="/profile">Profile</Link>
               <button className="hidden sm:inline-flex items-center h-9 px-3 rounded-full text-sm text-gray-700 hover:bg-gray-50" onClick={onLogout}>Logout</button>
-              <Link to="/profile" className="sm:hidden"><Avatar email={user.email} /></Link>
+              <Link to="/profile" className="sm:hidden"><Avatar user={user} /></Link>
             </>
           ) : (
-            <>
-              <Link className="inline-flex items-center h-9 px-3 rounded-full text-sm text-gray-700 hover:bg-gray-50" to="/login">Sign in</Link>
-              <Link className="inline-flex items-center h-9 px-4 rounded-full text-sm text-white bg-gray-900 hover:bg-black" to="/register">Get started</Link>
-            </>
+            <Link className="inline-flex items-center h-9 px-4 rounded-full text-sm text-white bg-gray-900 hover:bg-black" to="/login">
+              Get started
+            </Link>
           )}
         </nav>
       </div>
